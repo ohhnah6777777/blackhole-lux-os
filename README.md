@@ -1,56 +1,52 @@
-# Blackhole OS
 
-Create a premium, ultra-minimalist web operating system called "Blackhole OS". 
 
-The aesthetic must be a blend of macOS and Windows 11: a highly sophisticated, clean, monochromatic dark mode. Use absolute pitch-black (#000000) for app backgrounds, stark crisp white text, subtle fine-lined dark borders (1px border-neutral-800), and heavy backdrop blur (glassmorphism) for panels. No neon, no futuristic sci-fi effects—just pure, modern luxury software design.
+# 🌌 Blackhole OS
 
-Please build the core OS infrastructure with the following features:
+**Blackhole OS** is an ultra-premium, minimalist web-based operating system simulation built using React and Tailwind CSS. Stripping away cluttered cyberpunk tropes, Blackhole OS blends the glassmorphic elegance of **macOS Sequoia** with the clean typography and snap layouts of **Windows 11** to deliver a sophisticated, monochromatic desktop workspace right inside your browser.
 
-1. THE DESKTOP ENVIRONMENT: 
+---
 
-   - A clean, dramatic high-contrast dark wallpaper (or a deep monochrome gradient).
+## 🎨 Design Philosophy
+* **Pure Monochromatic Aesthetics:** Built entirely using deep pitch-blacks (`#000000`), stark crisp white typography, and subtle fine-lined dark borders (`1px border-neutral-800`).
+* **Glassmorphic Elements:** Heavy backdrop blurs (`backdrop-blur-lg`) on active app panels and the bottom floating navigation dock.
+* **Fluid Geometry:** Carefully calculated border radiuses and shadows to give overlapping windows a realistic, three-dimensional spatial depth.
 
-   - A floating, glassmorphic bottom Dock (like macOS) that subtly expands icons on hover. Include icons for Browser, File Manager, and System Settings.
+---
 
-   - A minimalist top menu bar (like macOS) showing "Blackhole OS" on the left, and a clean digital clock/system toggles on the far right.
+## 🚀 Implemented Applications & Features
 
-2. THE "BLACKHOLE" WEB BROWSER:
+### 🌐 1. Blackhole Browser (Web Portal Gateway)
+A custom-built productivity browser modeled after modern modular application frames like Arc and Safari. 
+* **Native Iframe Embedding:** Features pre-configured, secure shortcuts for framing-compliant digital libraries, including **Wikipedia** and **The Internet Archive**.
+* **Smart URL Sandbox Routing:** Leverages advanced parsing logic to detect iframe-blocking websites (e.g., Google, YouTube) and automatically routes those requests into sandboxed external browser tabs (`_blank`), eliminating the dreaded connection refusal bugs.
 
-   - Clicking the browser opens a sleek, borderless window with smooth, native-feeling dragging and resizing.
+### 🕹️ 2. MS-DOS Retro Arcade
+Harnessing the open-access power of the Internet Archive, Blackhole OS features a dedicated retro emulation stage. Play thousands of legendary MS-DOS and classic web games natively inside a fluid, hardware-accelerated app window frame supporting keyboard states and controller mapping.
 
-   - Window controls in the top left: a minimalist close, minimize, and maximize button (styled cleanly like macOS or Windows 11).
+### 📁 3. Interactive File Manager & System Settings
+* **Local State File System:** Fully responsive directory traversal (Documents, Downloads, Media) equipped with native breadcrumb navigation paths.
+* **Functional System Toggles:** Real-time state management allowing users to update desktop backgrounds, modify canvas scales, and tweak window styling on the fly.
+* **Draggable Window Stack:** An integrated desktop canvas engine handling multi-window absolute layout dragging, resizing, minimizing, and z-index window focusing.
 
-   - Browser UI features a sidebar layout (like Arc Browser) for tabs and bookmarks to keep the main view clean.
+---
 
-   - A centered, pill-shaped URL address bar at the top with back, forward, and refresh controls.
+## 🛠️ Local Installation & Development
 
-   - The main viewing area uses an <iframe> configured with a fallback CORS proxy (like api.allorigins.win) so it can successfully pull in web content. Set the default homepage to a gorgeous, clean "New Tab" dashboard featuring a minimalist search bar and a few neat bookmark tiles (e.g., Wikipedia).
+To run Blackhole OS locally on your machine, clone the repository and execute the following commands in your terminal:
 
-3. OS WINDOW MANAGEMENT:
+```bash
+# Clone the repository
+git clone https://github.com
 
-   - Ensure windows stack properly with realistic, subtle drop shadows (shadow-2xl) to separate them from the background.
+# Navigate into the project folder
+cd blackhole-os
 
-   - Transitions for opening, closing, and minimizing windows must be snappy and fluid (using clean Tailwind transitions or standard React state animation).
+# Install required Node packages
+npm install
 
-Focus heavily on typography, spacing, padding, and layout alignment to make it look like a real, professionally engineered desktop OS.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/a9641474-739e-40a9-93af-04510a753a35).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+# Boot up the local Vite development server
 npm run dev
 ```
+
+Open `http://localhost:5173` in your browser to experience the operating system.
+
