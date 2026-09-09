@@ -4,12 +4,12 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "build:dev": "vite build --mode development",
-    "preview": "vite preview",
-    "lint": "eslint .",
-    "format": "prettier --write ."
+    "dev": "npx vite dev",
+    "build": "npx vite build",
+    "build:dev": "npx vite build --mode development",
+    "preview": "npx vite preview",
+    "lint": "npx eslint .",
+    "format": "npx prettier --write ."
   },
   "overrides": {
     "rolldown": "1.2.1"
