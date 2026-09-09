@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { ArrowLeft, ArrowRight, BatteryFull, ChevronRight, CircleUserRound, Folder, Globe2, LockKeyhole, Maximize2, MonitorCog, MoreHorizontal, PanelLeft, Plus, RefreshCw, Search, Settings, ShieldCheck, Signal, SlidersHorizontal, Volume2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BatteryFull, ChevronRight, CircleUserRound, ExternalLink, FilePlus2, FileText, Folder, Globe2, LockKeyhole, Maximize2, MonitorCog, MoreHorizontal, PanelLeft, Plus, RefreshCw, Save, Search, Settings, ShieldCheck, Signal, SlidersHorizontal, SunMoon, Trash2, Volume2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,10 @@ function Index() {
   const [minimized, setMinimized] = useState(false);
   const [controlOpen, setControlOpen] = useState(false);
   const [time, setTime] = useState(() => new Date());
+  const [appearance, setAppearance] = useState<"dark" | "light">("dark");
+  const [wallpaper, setWallpaper] = useState<"graphite" | "void" | "frost">("graphite");
+  const [windowRadius, setWindowRadius] = useState(12);
+  const [proxyUrl, setProxyUrl] = useState("https://api.allorigins.win/raw?url=");
 
   useEffect(() => {
     const timer = window.setInterval(() => setTime(new Date()), 1000);
@@ -34,7 +38,7 @@ function Index() {
   };
 
   return (
-    <div className="desktop-wallpaper relative h-dvh w-full overflow-hidden text-foreground">
+    <div className={cn("relative h-dvh w-full overflow-hidden text-foreground", appearance === "light" && "light-os", `wallpaper-${wallpaper}`)}>
       <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(oklch(1_0_0/0.018)_1px,transparent_1px),linear-gradient(90deg,oklch(1_0_0/0.018)_1px,transparent_1px)] [background-size:64px_64px]" />
       <header className="glass-panel relative z-50 flex h-9 items-center justify-between border-b border-border/70 px-4 text-xs">
         <div className="flex items-center gap-5">
@@ -59,10 +63,10 @@ function Index() {
         </div>
 
         {activeApp && !minimized && (
-          <WindowShell title={activeApp === "browser" ? "Blackhole" : activeApp === "files" ? "Files" : "System Settings"} onClose={() => setActiveApp(null)} onMinimize={() => setMinimized(true)}>
-            {activeApp === "browser" && <Browser />}
+          <WindowShell radius={windowRadius} title={activeApp === "browser" ? "Blackhole" : activeApp === "files" ? "Files" : "System Settings"} onClose={() => setActiveApp(null)} onMinimize={() => setMinimized(true)}>
+            {activeApp === "browser" && <Browser proxyUrl={proxyUrl} />}
             {activeApp === "files" && <Files />}
-            {activeApp === "settings" && <SystemSettings />}
+            {activeApp === "settings" && <SystemSettings appearance={appearance} setAppearance={setAppearance} wallpaper={wallpaper} setWallpaper={setWallpaper} windowRadius={windowRadius} setWindowRadius={setWindowRadius} proxyUrl={proxyUrl} setProxyUrl={setProxyUrl} />}
           </WindowShell>
         )}
       </main>
@@ -83,7 +87,7 @@ function ControlCenter() {
   </aside>;
 }
 
-function WindowShell({ title, children, onClose, onMinimize }: { title: string; children: React.ReactNode; onClose: () => void; onMinimize: () => void }) {
+function WindowShell({ title, children, onClose, onMinimize, radius }: { title: string; children: React.ReactNode; onClose: () => void; onMinimize: () => void; radius: number }) {
   const [maximized, setMaximized] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
@@ -98,8 +102,8 @@ function WindowShell({ title, children, onClose, onMinimize }: { title: string; 
     setPosition({ x: drag.current.startX + event.clientX - drag.current.x, y: Math.max(-20, drag.current.startY + event.clientY - drag.current.y) });
   };
 
-  return <section className={cn("animate-window-in window-shadow absolute overflow-hidden border border-border bg-card transition-[inset,width,height,border-radius] duration-200", maximized ? "inset-2 rounded-lg" : "left-1/2 top-1/2 h-[min(760px,calc(100%-60px))] w-[min(1180px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 resize rounded-xl")}
-    style={maximized ? undefined : { translate: `${position.x}px ${position.y}px` }}>
+  return <section className={cn("animate-window-in window-shadow absolute overflow-hidden border border-border bg-card transition-[inset,width,height,border-radius] duration-200", maximized ? "inset-2" : "left-1/2 top-1/2 h-[min(760px,calc(100%-60px))] w-[min(1180px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 resize")}
+    style={{ borderRadius: `${radius}px`, ...(maximized ? {} : { translate: `${position.x}px ${position.y}px` }) }}>
     <div onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={() => { drag.current = null; }} onDoubleClick={() => setMaximized((value) => !value)} className="flex h-11 cursor-default items-center border-b border-border bg-secondary/60 px-4 backdrop-blur-xl">
       <div className="flex gap-2" onDoubleClick={(event) => event.stopPropagation()}>
         <button aria-label="Close window" onClick={onClose} className="group flex size-3 items-center justify-center rounded-full bg-muted-foreground/80 hover:bg-destructive"><X className="size-2 opacity-0 group-hover:opacity-100" /></button>
