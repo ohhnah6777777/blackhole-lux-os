@@ -1,12 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
-import {
-  ArrowLeft, ArrowRight, BatteryFull, BookOpen, ChevronRight, CircleUserRound,
-  ExternalLink, FilePlus2, FileText, Folder, Globe2, Library, LockKeyhole,
-  Maximize2, MonitorCog, Newspaper, PanelLeft, Pin, Plus, RefreshCw, Save,
-  Search, Settings, ShieldCheck, Signal, SlidersHorizontal, SunMoon, Trash2,
-  Volume2, X,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, BatteryFull, ChevronRight, CircleUserRound, ExternalLink, FilePlus2, FileText, Folder, Globe2, LockKeyhole, Maximize2, MonitorCog, MoreHorizontal, PanelLeft, Plus, RefreshCw, Save, Search, Settings, ShieldCheck, Signal, SlidersHorizontal, SunMoon, Trash2, Volume2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -23,19 +17,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type DesktopShortcut = {
-  id: number;
-  label: string;
-  url: string;
-  icon: string;
-};
-
-type PinnableBrowserProps = {
-  initialUrl?: string;
-  desktopShortcuts: DesktopShortcut[];
-  onPinShortcut: (shortcut: DesktopShortcut) => void;
-};
-
 function Index() {
   const [activeApp, setActiveApp] = useState<"browser" | "files" | "settings" | null>(null);
   const [minimized, setMinimized] = useState(false);
@@ -45,8 +26,6 @@ function Index() {
   const [wallpaper, setWallpaper] = useState<"graphite" | "void" | "frost">("graphite");
   const [windowRadius, setWindowRadius] = useState(12);
   const [proxyUrl, setProxyUrl] = useState("https://api.allorigins.win/raw?url=");
-  const [desktopShortcuts, setDesktopShortcuts] = useState<DesktopShortcut[]>([]);
-  const [browserInitialUrl, setBrowserInitialUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const timer = window.setInterval(() => setTime(new Date()), 1000);
@@ -56,23 +35,6 @@ function Index() {
   const launch = (app: "browser" | "files" | "settings") => {
     setActiveApp(app);
     setMinimized(false);
-  };
-
-  const launchBrowserWithUrl = (url: string) => {
-    setBrowserInitialUrl(url);
-    setActiveApp("browser");
-    setMinimized(false);
-  };
-
-  const pinShortcut = (shortcut: DesktopShortcut) => {
-    setDesktopShortcuts((current) => {
-      if (current.some((item) => item.url === shortcut.url)) return current;
-      return [...current, shortcut];
-    });
-  };
-
-  const removeShortcut = (id: number) => {
-    setDesktopShortcuts((current) => current.filter((item) => item.id !== id));
   };
 
   return (
@@ -95,19 +57,14 @@ function Index() {
       {controlOpen && <ControlCenter />}
 
       <main className="absolute inset-x-0 bottom-0 top-9">
-        <DesktopShortcuts shortcuts={desktopShortcuts} onLaunch={launchBrowserWithUrl} onRemove={removeShortcut} />
+        <div className="absolute left-8 top-8 hidden flex-col items-center gap-2 text-xs text-muted-foreground md:flex">
+          <div className="flex size-14 items-center justify-center rounded-md border border-border bg-secondary/70 backdrop-blur-xl"><MonitorCog className="size-7" /></div>
+          <span>System</span>
+        </div>
 
         {activeApp && !minimized && (
           <WindowShell radius={windowRadius} title={activeApp === "browser" ? "Blackhole" : activeApp === "files" ? "Files" : "System Settings"} onClose={() => setActiveApp(null)} onMinimize={() => setMinimized(true)}>
-            {activeApp === "browser" && (
-              <Browser
-                proxyUrl={proxyUrl}
-                initialUrl={browserInitialUrl}
-                onConsumeInitialUrl={() => setBrowserInitialUrl(undefined)}
-                desktopShortcuts={desktopShortcuts}
-                onPinShortcut={pinShortcut}
-              />
-            )}
+            {activeApp === "browser" && <Browser proxyUrl={proxyUrl} />}
             {activeApp === "files" && <Files />}
             {activeApp === "settings" && <SystemSettings appearance={appearance} setAppearance={setAppearance} wallpaper={wallpaper} setWallpaper={setWallpaper} windowRadius={windowRadius} setWindowRadius={setWindowRadius} proxyUrl={proxyUrl} setProxyUrl={setProxyUrl} />}
           </WindowShell>
@@ -115,33 +72,6 @@ function Index() {
       </main>
 
       <Dock activeApp={activeApp} minimized={minimized} onLaunch={launch} />
-    </div>
-  );
-}
-
-function DesktopShortcuts({ shortcuts, onLaunch, onRemove }: { shortcuts: DesktopShortcut[]; onLaunch: (url: string) => void; onRemove: (id: number) => void }) {
-  if (shortcuts.length === 0) return null;
-  return (
-    <div className="absolute right-6 top-6 z-10 flex flex-col items-center gap-4">
-      {shortcuts.map((shortcut) => (
-        <div key={shortcut.id} className="group relative flex flex-col items-center gap-1.5">
-          <button
-            onDoubleClick={() => onLaunch(shortcut.url)}
-            onClick={(e) => { if (e.detail === 1) onLaunch(shortcut.url); }}
-            className="flex size-14 items-center justify-center rounded-xl border border-border bg-secondary/70 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:border-muted-foreground hover:bg-accent hover:shadow-2xl"
-          >
-            <span className="text-lg font-semibold">{shortcut.icon}</span>
-          </button>
-          <span className="max-w-[72px] truncate text-[10px] text-muted-foreground group-hover:text-foreground">{shortcut.label}</span>
-          <button
-            aria-label={`Remove ${shortcut.label}`}
-            onClick={() => onRemove(shortcut.id)}
-            className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
-          >
-            <X className="size-2.5" />
-          </button>
-        </div>
-      ))}
     </div>
   );
 }
@@ -186,45 +116,9 @@ function WindowShell({ title, children, onClose, onMinimize, radius }: { title: 
   </section>;
 }
 
-const BLOCKED_DOMAINS = [
-  "google.com", "youtube.com", "twitter.com", "x.com", "reddit.com",
-  "facebook.com", "instagram.com", "linkedin.com", "tiktok.com",
-  "netflix.com", "amazon.com", "github.com",
-];
-
-function isBlockedDomain(url: string): boolean {
-  try {
-    const hostname = new URL(url).hostname.replace(/^www\./, "");
-    return BLOCKED_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`));
-  } catch {
-    return false;
-  }
-}
-
-function isSearchTerm(input: string): boolean {
-  const trimmed = input.trim();
-  if (!trimmed) return false;
-  if (/^https?:\/\//i.test(trimmed)) return false;
-  if (trimmed.includes(".") && !trimmed.includes(" ")) return false;
-  return true;
-}
-
-function isLikelyUrl(input: string): boolean {
-  const trimmed = input.trim();
-  if (/^https?:\/\//i.test(trimmed)) return true;
-  if (trimmed.includes(".") && !trimmed.includes(" ")) return true;
-  return false;
-}
-
 type BrowserTab = { id: number; history: (string | null)[]; index: number };
 
-function Browser({ proxyUrl, initialUrl, onConsumeInitialUrl, desktopShortcuts, onPinShortcut }: {
-  proxyUrl: string;
-  initialUrl?: string;
-  onConsumeInitialUrl: () => void;
-  desktopShortcuts: DesktopShortcut[];
-  onPinShortcut: (shortcut: DesktopShortcut) => void;
-}) {
+function Browser({ proxyUrl }: { proxyUrl: string }) {
   const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, history: [null], index: 0 }]);
   const [activeId, setActiveId] = useState(1);
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
@@ -233,62 +127,19 @@ function Browser({ proxyUrl, initialUrl, onConsumeInitialUrl, desktopShortcuts, 
   const [sidebar, setSidebar] = useState(true);
   const [key, setKey] = useState(0);
   const [useProxy, setUseProxy] = useState(true);
-  const [externalNotice, setExternalNotice] = useState<string | null>(null);
-  const initialUrlConsumed = useRef(false);
-
   const displayUrl = url ?? "blackhole://newtab";
-  const renderedUrl = useMemo(() => url ? (useProxy ? `${proxyUrl}${encodeURIComponent(url)}` : url) : "", [proxyUrl, url, useProxy]);
-
-  useEffect(() => {
-    if (initialUrl && !initialUrlConsumed.current) {
-      initialUrlConsumed.current = true;
-      navigate(initialUrl);
-      onConsumeInitialUrl();
-    }
-  }, [initialUrl]);
-
-  useEffect(() => {
-    if (externalNotice) {
-      const timer = window.setTimeout(() => setExternalNotice(null), 5000);
-      return () => window.clearTimeout(timer);
-    }
-  }, [externalNotice]);
-
-  const openExternal = (query: string, reason: string) => {
-    const trimmed = query.trim();
-    const searchUrl = isLikelyUrl(trimmed)
-      ? (/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`)
-      : `https://duckduckgo.com/?q=${encodeURIComponent(trimmed)}`;
-    window.open(searchUrl, "_blank", "noopener,noreferrer");
-    setExternalNotice(reason);
-  };
+  const renderedUrl = useMemo(() => url ? useProxy ? `${proxyUrl}${encodeURIComponent(url)}` : url : "", [proxyUrl, url, useProxy]);
 
   const navigate = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return;
-
-    if (isSearchTerm(trimmed)) {
-      openExternal(trimmed, `Search term routed to secure tab: "${trimmed}"`);
-      return;
-    }
-
-    const target = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-
-    if (isBlockedDomain(target)) {
-      openExternal(target, `Protected site opened in separate tab: ${target.replace(/^https?:\/\/(www\.)?/, "")}`);
-      return;
-    }
-
+    const target = /^https?:\/\//i.test(trimmed) ? trimmed : trimmed.includes(".") && !trimmed.includes(" ") ? `https://${trimmed}` : `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`;
     setTabs((current) => current.map((tab) => tab.id === activeId ? { ...tab, history: [...tab.history.slice(0, tab.index + 1), target], index: tab.index + 1 } : tab));
-    setInput(target);
-    setKey((value) => value + 1);
-    setExternalNotice(null);
+    setInput(target); setKey((value) => value + 1);
   };
-
   const moveHistory = (amount: number) => {
     setTabs((current) => current.map((tab) => tab.id === activeId ? { ...tab, index: Math.max(0, Math.min(tab.history.length - 1, tab.index + amount)) } : tab));
-    setInput("");
-    setKey((value) => value + 1);
+    setInput(""); setKey((value) => value + 1);
   };
   const newTab = () => { const id = Date.now(); setTabs((current) => [...current, { id, history: [null], index: 0 }]); setActiveId(id); setInput(""); };
   const closeTab = (id: number) => {
@@ -300,38 +151,13 @@ function Browser({ proxyUrl, initialUrl, onConsumeInitialUrl, desktopShortcuts, 
   };
   const submit = (event: FormEvent) => { event.preventDefault(); navigate(input); };
 
-  const pinToDesktop = () => {
-    if (!url) return;
-    const hostname = (() => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } })();
-    const label = hostname.split(".")[0].charAt(0).toUpperCase() + hostname.split(".")[0].slice(1);
-    const icon = label.charAt(0).toUpperCase();
-    const isAlreadyPinned = desktopShortcuts.some((item) => item.url === url);
-    if (isAlreadyPinned) {
-      setExternalNotice(`"${label}" is already pinned to your desktop.`);
-      return;
-    }
-    onPinShortcut({ id: Date.now(), label, url, icon });
-    setExternalNotice(`Pinned "${label}" to your desktop.`);
-  };
-
-  const PORTAL_SITES = [
-    { label: "Wikipedia", url: "https://wikipedia.org", mark: "W", icon: BookOpen, description: "The free encyclopedia" },
-    { label: "Internet Archive", url: "https://archive.org", mark: "A", icon: Library, description: "Digital library archive" },
-    { label: "MS-DOS Arcade", url: "https://archive.org/details/softwarelibrary_msdos_games", mark: "D", icon: MonitorCog, description: "Classic DOS games" },
-    { label: "Hacker News", url: "https://ycombinator.com", mark: "H", icon: Newspaper, description: "Tech news & discussion" },
-  ];
-
   return <div className="flex h-full min-h-0 bg-background">
     {sidebar && <aside className="hidden w-52 shrink-0 border-r border-border bg-card p-3 sm:block">
       <div className="mb-5 flex items-center justify-between px-2"><span className="text-xs font-semibold">Tabs</span><Button aria-label="New tab" variant="chrome" size="icon" className="size-7" onClick={newTab}><Plus /></Button></div>
       {tabs.map((tab, tabIndex) => <div key={tab.id} className={cn("group mb-1 flex items-center rounded-md", tab.id === activeId && "bg-accent")}><button onClick={() => { setActiveId(tab.id); setInput(""); }} className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-left text-xs"><Globe2 className="size-3.5 shrink-0"/><span className="truncate">{tab.history[tab.index]?.replace(/^https?:\/\/(www\.)?/, "") || `New Tab ${tabIndex + 1}`}</span></button><Button aria-label="Close tab" variant="chrome" size="icon" className="mr-1 size-6 opacity-0 group-hover:opacity-100" onClick={() => closeTab(tab.id)}><X /></Button></div>)}
-      <p className="mb-2 mt-6 px-3 text-[10px] uppercase text-muted-foreground">Portal Directory</p>
-      {PORTAL_SITES.map((site) => (
-        <button key={site.label} onClick={() => navigate(site.url)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-          <site.icon className="size-3.5 shrink-0" />
-          {site.label}
-        </button>
-      ))}
+      <p className="mb-2 mt-6 px-3 text-[10px] uppercase text-muted-foreground">Pinned</p>
+      <button onClick={() => navigate("https://en.wikipedia.org")} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent hover:text-foreground"><span className="font-serif">W</span> Wikipedia</button>
+      <button onClick={() => navigate("https://developer.mozilla.org")} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent hover:text-foreground"><span className="font-mono">MDN</span> Developer</button>
     </aside>}
     <div className="flex min-w-0 flex-1 flex-col">
       <div className="flex h-14 shrink-0 items-center gap-1 border-b border-border px-3">
@@ -342,70 +168,25 @@ function Browser({ proxyUrl, initialUrl, onConsumeInitialUrl, desktopShortcuts, 
           <LockKeyhole className="mr-2 size-3 text-muted-foreground" />
           <input value={input} onChange={(event) => setInput(event.target.value)} placeholder={displayUrl} className="min-w-0 flex-1 bg-transparent text-center text-xs outline-none placeholder:text-muted-foreground" />
         </form>
-        <TooltipProvider delayDuration={300}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button aria-label="Pin to Desktop" variant="chrome" size="icon" className="size-8" disabled={!url} onClick={pinToDesktop}><Pin /></Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={8}>Pin to Desktop</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
         <Button variant="chrome" size="icon" className="size-8" onClick={() => setSidebar((value) => !value)}><PanelLeft /></Button>
         <Button aria-label={useProxy ? "Use direct loading" : "Use proxy loading"} variant="chrome" size="icon" className={cn("size-8", useProxy && "bg-accent")} onClick={() => setUseProxy((value) => !value)}><ShieldCheck /></Button>
         {url && <Button aria-label="Open in browser" variant="chrome" size="icon" className="size-8" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}><ExternalLink /></Button>}
       </div>
-
-      {externalNotice && (
-        <div className="animate-window-in flex shrink-0 items-center gap-2 border-b border-border bg-secondary/80 px-4 py-2 backdrop-blur-xl">
-          <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
-          <span className="flex-1 text-xs text-muted-foreground">{externalNotice}</span>
-          <button aria-label="Dismiss notice" onClick={() => setExternalNotice(null)} className="text-muted-foreground hover:text-foreground"><X className="size-3.5" /></button>
-        </div>
-      )}
-
       <div className="min-h-0 flex-1">
-        {url ? (
-          <iframe
-            key={key}
-            title="Blackhole browser content"
-            src={renderedUrl}
-            className="h-full w-full bg-background"
-            sandbox="allow-forms allow-popups allow-scripts allow-same-origin allow-fullscreen allow-gamepad"
-            allow="fullscreen; gamepad"
-            referrerPolicy="no-referrer"
-          />
-        ) : (
-          <NewTab onNavigate={navigate} portalSites={PORTAL_SITES} />
-        )}
+        {url ? <iframe key={key} title="Blackhole browser content" src={renderedUrl} className="h-full w-full bg-background" sandbox="allow-forms allow-popups allow-scripts allow-same-origin" referrerPolicy="no-referrer" /> : <NewTab onNavigate={navigate} />}
       </div>
     </div>
   </div>;
 }
 
-function NewTab({ onNavigate, portalSites }: { onNavigate: (value: string) => void; portalSites: { label: string; url: string; mark: string; icon: typeof BookOpen; description: string }[] }) {
+function NewTab({ onNavigate }: { onNavigate: (value: string) => void }) {
   const [query, setQuery] = useState("");
-  return <div className="flex h-full flex-col items-center justify-center px-6 pb-12 overflow-y-auto">
+  return <div className="flex h-full flex-col items-center justify-center px-6 pb-12">
     <div className="mb-8 flex size-16 items-center justify-center rounded-2xl border border-border bg-card shadow-2xl"><div className="size-5 rounded-full border-2 border-foreground shadow-[inset_0_0_0_4px_var(--background)]" /></div>
-    <h1 className="mb-2 text-2xl font-medium">Blackhole</h1>
-    <p className="mb-8 text-sm text-muted-foreground">Where would you like to go?</p>
-    <form onSubmit={(event) => { event.preventDefault(); onNavigate(query); }} className="flex h-12 w-full max-w-xl items-center rounded-full border border-border bg-card px-5 shadow-xl focus-within:border-muted-foreground"><Search className="mr-3 size-4 text-muted-foreground"/><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search or enter a URL" className="flex-1 bg-transparent text-sm outline-none"/></form>
-    <p className="mb-3 mt-10 text-[10px] uppercase text-muted-foreground">Portal Directory</p>
-    <div className="grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
-      {portalSites.map((site) => (
-        <button
-          key={site.label}
-          onClick={() => onNavigate(site.url)}
-          className="group flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-5 text-center transition-all duration-200 hover:-translate-y-1 hover:border-muted-foreground hover:shadow-2xl"
-        >
-          <span className="flex size-12 items-center justify-center rounded-lg border border-border bg-secondary font-semibold text-foreground transition-transform group-hover:scale-110">
-            <site.icon className="size-5" />
-          </span>
-          <div>
-            <p className="text-xs font-medium text-foreground">{site.label}</p>
-            <p className="mt-0.5 text-[10px] text-muted-foreground">{site.description}</p>
-          </div>
-        </button>
-      ))}
+    <h1 className="mb-2 text-2xl font-medium">Blackhole</h1><p className="mb-8 text-sm text-muted-foreground">Where would you like to go?</p>
+    <form onSubmit={(event) => { event.preventDefault(); onNavigate(query); }} className="flex h-12 w-full max-w-xl items-center rounded-full border border-border bg-card px-5 shadow-xl focus-within:border-muted-foreground"><Search className="mr-3 size-4 text-muted-foreground"/><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search the web" className="flex-1 bg-transparent text-sm outline-none"/></form>
+    <div className="mt-8 grid grid-cols-3 gap-3">
+      {[{ label: "Wikipedia", mark: "W", url: "https://en.wikipedia.org" }, { label: "MDN", mark: "M", url: "https://developer.mozilla.org" }, { label: "Archive", mark: "A", url: "https://archive.org" }].map((site) => <button key={site.label} onClick={() => onNavigate(site.url)} className="group flex w-24 flex-col items-center gap-2 rounded-lg p-3 text-xs text-muted-foreground transition-colors hover:bg-card hover:text-foreground"><span className="flex size-10 items-center justify-center rounded-lg border border-border bg-secondary font-medium text-foreground transition-transform group-hover:scale-105">{site.mark}</span>{site.label}</button>)}
     </div>
   </div>;
 }
@@ -436,7 +217,7 @@ type AppearanceProps = { appearance: "dark" | "light"; setAppearance: (value: "d
 
 function SystemSettings({ appearance, setAppearance, wallpaper, setWallpaper, windowRadius, setWindowRadius, proxyUrl, setProxyUrl }: AppearanceProps) {
   const [section, setSection] = useState<"Appearance" | "Browser" | "Privacy" | "About">("Appearance");
-  return <div className="flex h-full bg-background"><aside className="w-56 border-r border-border bg-card p-4"><div className="mb-6 flex items-center gap-3 rounded-lg border border-border bg-secondary p-3"><CircleUserRound className="size-8"/><div><p className="text-xs font-medium">Blackhole User</p><p className="text-[10px] text-muted-foreground">Local account</p></div></div>{["Appearance", "Browser", "Privacy", "About"].map((item) => <button key={item} onClick={() => setSection(item as typeof section)} className={cn("mb-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-xs", section === item ? "bg-accent" : "text-muted-foreground hover:bg-accent")}><span>{item}</span><ChevronRight className="size-3"/></button>)}</aside><div className="min-w-0 flex-1 overflow-y-auto p-8"><h2 className="text-xl font-medium">{section}</h2>{section === "Appearance" && <div className="mt-7 max-w-2xl space-y-8"><section><p className="mb-3 text-xs font-medium">Color mode</p><div className="flex gap-2">{(["dark", "light"] as const).map((mode) => <Button key={mode} variant={appearance === mode ? "default" : "outline"} onClick={() => setAppearance(mode)}><SunMoon/>{mode === "dark" ? "Dark Mode" : "Light Mode"}</Button>)}</div></section><section><p className="mb-3 text-xs font-medium">Wallpaper</p><div className="grid grid-cols-3 gap-3">{(["graphite", "void", "frost"] as const).map((choice) => <button key={choice} onClick={() => setWallpaper(choice)} className={cn("overflow-hidden rounded-lg border p-1 text-left", wallpaper === choice ? "border-foreground" : "border-border hover:border-muted-foreground")}><span className={cn("block aspect-video rounded-md", `wallpaper-${choice}`)}/><span className="block p-2 text-xs capitalize">{choice}</span></button>)}</div></section><section><div className="mb-3 flex items-center justify-between"><p className="text-xs font-medium">Window corner radius</p><span className="text-xs text-muted-foreground">{windowRadius}px</span></div><input aria-label="Window corner radius" type="range" min="0" max="24" value={windowRadius} onChange={(event) => setWindowRadius(Number(event.target.value))} className="w-full accent-current"/></section></div>}{section === "Browser" && <div className="mt-7 max-w-2xl"><label className="text-xs font-medium" htmlFor="proxy-url">Proxy URL prefix</label><p className="mb-3 mt-1 text-xs text-muted-foreground">The destination URL is encoded and appended to this address.</p><input id="proxy-url" value={proxyUrl} onChange={(event) => setProxyUrl(event.target.value)} className="h-10 w-full rounded-md border border-input bg-secondary px-3 text-sm outline-none focus:border-foreground"/><p className="mt-4 text-xs text-muted-foreground">Search terms and sites that block embedding (Google, YouTube, Reddit, etc.) automatically open in a separate secure browser tab. Wikipedia, the Internet Archive, and Hacker News load directly inside the Blackhole Browser frame.</p></div>}{section === "Privacy" && <div className="mt-7 max-w-xl text-sm text-muted-foreground">Browser tabs, file edits, and appearance settings stay in this session.</div>}{section === "About" && <div className="mt-7"><p className="text-sm">Blackhole OS 1.0</p><p className="mt-1 text-xs text-muted-foreground">Web edition</p></div>}</div></div>;
+  return <div className="flex h-full bg-background"><aside className="w-56 border-r border-border bg-card p-4"><div className="mb-6 flex items-center gap-3 rounded-lg border border-border bg-secondary p-3"><CircleUserRound className="size-8"/><div><p className="text-xs font-medium">Blackhole User</p><p className="text-[10px] text-muted-foreground">Local account</p></div></div>{["Appearance", "Browser", "Privacy", "About"].map((item) => <button key={item} onClick={() => setSection(item as typeof section)} className={cn("mb-1 flex w-full items-center justify-between rounded-md px-3 py-2 text-xs", section === item ? "bg-accent" : "text-muted-foreground hover:bg-accent")}><span>{item}</span><ChevronRight className="size-3"/></button>)}</aside><div className="min-w-0 flex-1 overflow-y-auto p-8"><h2 className="text-xl font-medium">{section}</h2>{section === "Appearance" && <div className="mt-7 max-w-2xl space-y-8"><section><p className="mb-3 text-xs font-medium">Color mode</p><div className="flex gap-2">{(["dark", "light"] as const).map((mode) => <Button key={mode} variant={appearance === mode ? "default" : "outline"} onClick={() => setAppearance(mode)}><SunMoon/>{mode === "dark" ? "Dark Mode" : "Light Mode"}</Button>)}</div></section><section><p className="mb-3 text-xs font-medium">Wallpaper</p><div className="grid grid-cols-3 gap-3">{(["graphite", "void", "frost"] as const).map((choice) => <button key={choice} onClick={() => setWallpaper(choice)} className={cn("overflow-hidden rounded-lg border p-1 text-left", wallpaper === choice ? "border-foreground" : "border-border hover:border-muted-foreground")}><span className={cn("block aspect-video rounded-md", `wallpaper-${choice}`)}/><span className="block p-2 text-xs capitalize">{choice}</span></button>)}</div></section><section><div className="mb-3 flex items-center justify-between"><p className="text-xs font-medium">Window corner radius</p><span className="text-xs text-muted-foreground">{windowRadius}px</span></div><input aria-label="Window corner radius" type="range" min="0" max="24" value={windowRadius} onChange={(event) => setWindowRadius(Number(event.target.value))} className="w-full accent-current"/></section></div>}{section === "Browser" && <div className="mt-7 max-w-2xl"><label className="text-xs font-medium" htmlFor="proxy-url">Proxy URL prefix</label><p className="mb-3 mt-1 text-xs text-muted-foreground">The destination URL is encoded and appended to this address.</p><input id="proxy-url" value={proxyUrl} onChange={(event) => setProxyUrl(event.target.value)} className="h-10 w-full rounded-md border border-input bg-secondary px-3 text-sm outline-none focus:border-foreground"/><p className="mt-4 text-xs text-muted-foreground">Use the shield button in Blackhole Browser to switch between proxy and direct loading. Sites that prevent embedding can be opened with the external-link button.</p></div>}{section === "Privacy" && <div className="mt-7 max-w-xl text-sm text-muted-foreground">Browser tabs, file edits, and appearance settings stay in this session.</div>}{section === "About" && <div className="mt-7"><p className="text-sm">Blackhole OS 1.0</p><p className="mt-1 text-xs text-muted-foreground">Web edition</p></div>}</div></div>;
 }
 
 function Dock({ activeApp, minimized, onLaunch }: { activeApp: string | null; minimized: boolean; onLaunch: (app: "browser" | "files" | "settings") => void }) {
