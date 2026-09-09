@@ -154,6 +154,41 @@
   background-image: linear-gradient(135deg, oklch(0.02 0 0) 0%, oklch(0.105 0 0) 46%, oklch(0.015 0 0) 100%);
 }
 
+@utility wallpaper-graphite {
+  background-color: var(--background);
+  background-image: linear-gradient(135deg, oklch(0.02 0 0), oklch(0.105 0 0) 46%, oklch(0.015 0 0));
+}
+
+@utility wallpaper-void {
+  background-color: var(--background);
+  background-image: radial-gradient(circle at 52% 44%, oklch(0.17 0 0), oklch(0.015 0 0) 42%, oklch(0 0 0) 74%);
+}
+
+@utility wallpaper-frost {
+  background-color: var(--background);
+  background-image: linear-gradient(145deg, oklch(0.34 0 0), oklch(0.13 0 0) 52%, oklch(0.03 0 0));
+}
+
+@utility light-os {
+  --background: oklch(0.94 0 0);
+  --foreground: oklch(0.12 0 0);
+  --card: oklch(0.985 0 0);
+  --card-foreground: oklch(0.12 0 0);
+  --popover: oklch(0.98 0 0 / 92%);
+  --popover-foreground: oklch(0.12 0 0);
+  --primary: oklch(0.12 0 0);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.9 0 0 / 82%);
+  --secondary-foreground: oklch(0.14 0 0);
+  --muted: oklch(0.87 0 0);
+  --muted-foreground: oklch(0.43 0 0);
+  --accent: oklch(0.82 0 0);
+  --accent-foreground: oklch(0.1 0 0);
+  --border: oklch(0.74 0 0);
+  --input: oklch(0.8 0 0);
+  --ring: oklch(0.35 0 0);
+}
+
 @utility glass-panel {
   background: color-mix(in oklab, var(--card) 78%, transparent);
   backdrop-filter: blur(32px) saturate(125%);
