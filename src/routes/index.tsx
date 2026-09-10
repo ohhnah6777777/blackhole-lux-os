@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { BatteryFull, ChevronRight, CircleUserRound, ExternalLink, FilePlus2, FileText, Folder, Globe2, LockKeyhole, MonitorCog, Save, Search, Settings, ShieldCheck, Signal, SunMoon, Trash2, Volume2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
