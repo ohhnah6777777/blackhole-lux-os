@@ -5,4 +5,4 @@
 - [x] Add browser tabs and per-tab history. (Superseded by the portal launcher.)
 - [x] Remove all proxy and iframe browsing code.
 - [x] Redesign Browser as a Web Portal Launcher.
-- [ ] Verify external search and destination launching.
+- [x] Verify external search and destination launching.
