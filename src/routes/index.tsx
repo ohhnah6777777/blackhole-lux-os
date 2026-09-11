@@ -47,6 +47,8 @@ function Index() {
           <span className="hidden text-muted-foreground sm:block">Desktop</span>
           <span className="hidden text-muted-foreground sm:block">Window</span>
         </div>
+        <div className="flex items-center gap-1">
+        <a href="/blackhole-os-desktop.zip" download className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1 text-[11px] transition-colors hover:bg-accent"><Download className="size-3.5" />Download for desktop</a>
         <button onClick={() => setControlOpen((value) => !value)} className="flex items-center gap-3 rounded-md px-2 py-1 transition-colors hover:bg-accent">
           <Signal className="size-3.5" /><Volume2 className="size-3.5" /><BatteryFull className="size-4" />
           <span>{time.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span>
