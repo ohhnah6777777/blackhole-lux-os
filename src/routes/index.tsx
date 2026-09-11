@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { ArrowLeft, ArrowRight, BatteryFull, ChevronRight, CircleUserRound, ExternalLink, FilePlus2, FileText, Folder, Globe2, LockKeyhole, Maximize2, MonitorCog, MoreHorizontal, PanelLeft, Plus, RefreshCw, Save, Search, Settings, ShieldCheck, Signal, SlidersHorizontal, SunMoon, Trash2, Volume2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BatteryFull, ChevronRight, CircleUserRound, FilePlus2, FileText, Folder, Globe2, LockKeyhole, Maximize2, MonitorCog, MoreHorizontal, PanelLeft, Plus, RefreshCw, Save, Settings, ShieldCheck, Signal, SlidersHorizontal, SunMoon, Trash2, Volume2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ function Index() {
   const [appearance, setAppearance] = useState<"dark" | "light">("dark");
   const [wallpaper, setWallpaper] = useState<"graphite" | "void" | "frost">("graphite");
   const [windowRadius, setWindowRadius] = useState(12);
-  const [proxyUrl, setProxyUrl] = useState("https://api.allorigins.win/raw?url=");
+  const [proxyUrl, setProxyUrl] = useState("https://rammerhead.org/?url=");
 
   useEffect(() => {
     const timer = window.setInterval(() => setTime(new Date()), 1000);
