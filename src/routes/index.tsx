@@ -118,6 +118,8 @@ function WindowShell({ title, children, onClose, onMinimize, radius }: { title: 
 
 type BrowserTab = { id: number; history: (string | null)[]; index: number };
 
+const GATEWAY_HOME = "https://rammerhead.org";
+
 function Browser({ proxyUrl }: { proxyUrl: string }) {
   const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, history: [null], index: 0 }]);
   const [activeId, setActiveId] = useState(1);
@@ -126,9 +128,8 @@ function Browser({ proxyUrl }: { proxyUrl: string }) {
   const [input, setInput] = useState("");
   const [sidebar, setSidebar] = useState(true);
   const [key, setKey] = useState(0);
-  const [useProxy, setUseProxy] = useState(true);
-  const displayUrl = url ?? "blackhole://newtab";
-  const renderedUrl = useMemo(() => url ? useProxy ? `${proxyUrl}${encodeURIComponent(url)}` : url : "", [proxyUrl, url, useProxy]);
+  const displayUrl = url ?? "Gateway home";
+  const renderedUrl = useMemo(() => url ? `${proxyUrl}${encodeURIComponent(url)}` : GATEWAY_HOME, [proxyUrl, url]);
 
   const navigate = (value: string) => {
     const trimmed = value.trim();
