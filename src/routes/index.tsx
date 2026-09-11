@@ -179,17 +179,6 @@ function Browser({ proxyUrl }: { proxyUrl: string }) {
   </div>;
 }
 
-function NewTab({ onNavigate }: { onNavigate: (value: string) => void }) {
-  const [query, setQuery] = useState("");
-  return <div className="flex h-full flex-col items-center justify-center px-6 pb-12">
-    <div className="mb-8 flex size-16 items-center justify-center rounded-2xl border border-border bg-card shadow-2xl"><div className="size-5 rounded-full border-2 border-foreground shadow-[inset_0_0_0_4px_var(--background)]" /></div>
-    <h1 className="mb-2 text-2xl font-medium">Blackhole</h1><p className="mb-8 text-sm text-muted-foreground">Where would you like to go?</p>
-    <form onSubmit={(event) => { event.preventDefault(); onNavigate(query); }} className="flex h-12 w-full max-w-xl items-center rounded-full border border-border bg-card px-5 shadow-xl focus-within:border-muted-foreground"><Search className="mr-3 size-4 text-muted-foreground"/><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search the web" className="flex-1 bg-transparent text-sm outline-none"/></form>
-    <div className="mt-8 grid grid-cols-3 gap-3">
-      {[{ label: "Wikipedia", mark: "W", url: "https://en.wikipedia.org" }, { label: "MDN", mark: "M", url: "https://developer.mozilla.org" }, { label: "Archive", mark: "A", url: "https://archive.org" }].map((site) => <button key={site.label} onClick={() => onNavigate(site.url)} className="group flex w-24 flex-col items-center gap-2 rounded-lg p-3 text-xs text-muted-foreground transition-colors hover:bg-card hover:text-foreground"><span className="flex size-10 items-center justify-center rounded-lg border border-border bg-secondary font-medium text-foreground transition-transform group-hover:scale-105">{site.mark}</span>{site.label}</button>)}
-    </div>
-  </div>;
-}
 
 type FsItem = { id: number; name: string; type: "folder" | "file"; parent: string; content?: string };
 
