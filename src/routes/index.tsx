@@ -170,11 +170,10 @@ function Browser({ proxyUrl }: { proxyUrl: string }) {
           <input value={input} onChange={(event) => setInput(event.target.value)} placeholder={displayUrl} className="min-w-0 flex-1 bg-transparent text-center text-xs outline-none placeholder:text-muted-foreground" />
         </form>
         <Button variant="chrome" size="icon" className="size-8" onClick={() => setSidebar((value) => !value)}><PanelLeft /></Button>
-        <Button aria-label={useProxy ? "Use direct loading" : "Use proxy loading"} variant="chrome" size="icon" className={cn("size-8", useProxy && "bg-accent")} onClick={() => setUseProxy((value) => !value)}><ShieldCheck /></Button>
-        {url && <Button aria-label="Open in browser" variant="chrome" size="icon" className="size-8" onClick={() => window.open(url, "_blank", "noopener,noreferrer")}><ExternalLink /></Button>}
+        <span aria-label="Gateway proxy active" title="Gateway proxy active" className="flex size-8 items-center justify-center rounded-md text-muted-foreground"><ShieldCheck className="size-4" /></span>
       </div>
-      <div className="min-h-0 flex-1">
-        {url ? <iframe key={key} title="Blackhole browser content" src={renderedUrl} className="h-full w-full bg-background" sandbox="allow-forms allow-popups allow-scripts allow-same-origin" referrerPolicy="no-referrer" /> : <NewTab onNavigate={navigate} />}
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <iframe key={`${key}-${renderedUrl}`} title="Blackhole browser content" src={renderedUrl} className="block h-full w-full border-0 bg-background" sandbox="allow-forms allow-popups allow-scripts allow-same-origin" referrerPolicy="no-referrer" />
       </div>
     </div>
   </div>;
