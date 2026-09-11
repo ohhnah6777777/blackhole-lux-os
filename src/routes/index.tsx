@@ -161,7 +161,7 @@ function Browser({ proxyUrl }: { proxyUrl: string }) {
       <button onClick={() => navigate("https://developer.mozilla.org")} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent hover:text-foreground"><span className="font-mono">MDN</span> Developer</button>
     </aside>}
     <div className="flex min-w-0 flex-1 flex-col">
-      <div className="flex h-14 shrink-0 items-center gap-1 border-b border-border px-3">
+      <div className="glass-panel flex h-14 shrink-0 items-center gap-1 border-b border-border px-3">
         <Button aria-label="Back" disabled={!active || active.index === 0} variant="chrome" size="icon" className="size-8" onClick={() => moveHistory(-1)}><ArrowLeft /></Button>
         <Button aria-label="Forward" disabled={!active || active.index === active.history.length - 1} variant="chrome" size="icon" className="size-8" onClick={() => moveHistory(1)}><ArrowRight /></Button>
         <Button variant="chrome" size="icon" className="size-8" onClick={() => setKey((value) => value + 1)}><RefreshCw /></Button>
