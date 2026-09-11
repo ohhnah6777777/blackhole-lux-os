@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { ArrowLeft, ArrowRight, BatteryFull, ChevronRight, CircleUserRound, FilePlus2, FileText, Folder, Globe2, LockKeyhole, Maximize2, MonitorCog, MoreHorizontal, PanelLeft, Plus, RefreshCw, Save, Settings, ShieldCheck, Signal, SlidersHorizontal, SunMoon, Trash2, Volume2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, BatteryFull, ChevronRight, CircleUserRound, FilePlus2, FileText, Folder, Globe2, LockKeyhole, Maximize2, Download, MonitorCog, MoreHorizontal, Plus, RefreshCw, Save, Search, Settings, ShieldCheck, Signal, SlidersHorizontal, SunMoon, Trash2, Volume2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -25,7 +25,7 @@ function Index() {
   const [appearance, setAppearance] = useState<"dark" | "light">("dark");
   const [wallpaper, setWallpaper] = useState<"graphite" | "void" | "frost">("graphite");
   const [windowRadius, setWindowRadius] = useState(12);
-  const [proxyUrl, setProxyUrl] = useState("https://rammerhead.org/?url=");
+  const [proxyUrl, setProxyUrl] = useState("https://api.allorigins.win/raw?url=");
 
   useEffect(() => {
     const timer = window.setInterval(() => setTime(new Date()), 1000);
@@ -47,11 +47,14 @@ function Index() {
           <span className="hidden text-muted-foreground sm:block">Desktop</span>
           <span className="hidden text-muted-foreground sm:block">Window</span>
         </div>
+        <div className="flex items-center gap-1">
+        <a href="/blackhole-os-desktop.zip" download className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1 text-[11px] transition-colors hover:bg-accent"><Download className="size-3.5" />Download for desktop</a>
         <button onClick={() => setControlOpen((value) => !value)} className="flex items-center gap-3 rounded-md px-2 py-1 transition-colors hover:bg-accent">
           <Signal className="size-3.5" /><Volume2 className="size-3.5" /><BatteryFull className="size-4" />
           <span>{time.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span>
           <span className="font-medium tabular-nums">{time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
         </button>
+        </div>
       </header>
 
       {controlOpen && <ControlCenter />}
@@ -118,7 +121,13 @@ function WindowShell({ title, children, onClose, onMinimize, radius }: { title: 
 
 type BrowserTab = { id: number; history: (string | null)[]; index: number };
 
-const GATEWAY_HOME = "https://rammerhead.org";
+type DesktopBridge = { openWindow: (url: string) => void };
+
+function useDesktopBridge() {
+  const [bridge, setBridge] = useState<DesktopBridge | null>(null);
+  useEffect(() => { setBridge((window as unknown as { blackhole?: DesktopBridge }).blackhole ?? null); }, []);
+  return bridge;
+}
 
 function Browser({ proxyUrl }: { proxyUrl: string }) {
   const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, history: [null], index: 0 }]);
@@ -126,15 +135,19 @@ function Browser({ proxyUrl }: { proxyUrl: string }) {
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
   const url = active?.history[active.index] ?? null;
   const [input, setInput] = useState("");
-  const [sidebar, setSidebar] = useState(true);
   const [key, setKey] = useState(0);
-  const displayUrl = url ?? "Gateway home";
-  const renderedUrl = useMemo(() => url ? `${proxyUrl}${encodeURIComponent(url)}` : GATEWAY_HOME, [proxyUrl, url]);
+  const desktop = useDesktopBridge();
+  const renderedUrl = useMemo(() => url ? `${proxyUrl}${encodeURIComponent(url)}` : "", [proxyUrl, url]);
 
-  const navigate = (value: string) => {
+  const toTarget = (value: string) => {
     const trimmed = value.trim();
-    if (!trimmed) return;
-    const target = /^https?:\/\//i.test(trimmed) ? trimmed : trimmed.includes(".") && !trimmed.includes(" ") ? `https://${trimmed}` : `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`;
+    if (!trimmed) return null;
+    return /^https?:\/\//i.test(trimmed) ? trimmed : trimmed.includes(".") && !trimmed.includes(" ") ? `https://${trimmed}` : `https://duckduckgo.com/?q=${encodeURIComponent(trimmed)}`;
+  };
+  const navigate = (value: string) => {
+    const target = toTarget(value);
+    if (!target) return;
+    if (desktop) { desktop.openWindow(target); return; }
     setTabs((current) => current.map((tab) => tab.id === activeId ? { ...tab, history: [...tab.history.slice(0, tab.index + 1), target], index: tab.index + 1 } : tab));
     setInput(target); setKey((value) => value + 1);
   };
@@ -151,30 +164,44 @@ function Browser({ proxyUrl }: { proxyUrl: string }) {
     if (id === activeId && fallback) setActiveId(fallback.id);
   };
   const submit = (event: FormEvent) => { event.preventDefault(); navigate(input); };
+  const label = (tab: BrowserTab) => tab.history[tab.index]?.replace(/^https?:\/\/(www\.)?/, "").replace(/\/.*$/, "") || "New Tab";
 
-  return <div className="flex h-full min-h-0 bg-background">
-    {sidebar && <aside className="hidden w-52 shrink-0 border-r border-border bg-card p-3 sm:block">
-      <div className="mb-5 flex items-center justify-between px-2"><span className="text-xs font-semibold">Tabs</span><Button aria-label="New tab" variant="chrome" size="icon" className="size-7" onClick={newTab}><Plus /></Button></div>
-      {tabs.map((tab, tabIndex) => <div key={tab.id} className={cn("group mb-1 flex items-center rounded-md", tab.id === activeId && "bg-accent")}><button onClick={() => { setActiveId(tab.id); setInput(""); }} className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-left text-xs"><Globe2 className="size-3.5 shrink-0"/><span className="truncate">{tab.history[tab.index]?.replace(/^https?:\/\/(www\.)?/, "") || `New Tab ${tabIndex + 1}`}</span></button><Button aria-label="Close tab" variant="chrome" size="icon" className="mr-1 size-6 opacity-0 group-hover:opacity-100" onClick={() => closeTab(tab.id)}><X /></Button></div>)}
-      <p className="mb-2 mt-6 px-3 text-[10px] uppercase text-muted-foreground">Pinned</p>
-      <button onClick={() => navigate("https://en.wikipedia.org")} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent hover:text-foreground"><span className="font-serif">W</span> Wikipedia</button>
-      <button onClick={() => navigate("https://developer.mozilla.org")} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent hover:text-foreground"><span className="font-mono">MDN</span> Developer</button>
-    </aside>}
-    <div className="flex min-w-0 flex-1 flex-col">
-      <div className="glass-panel flex h-14 shrink-0 items-center gap-1 border-b border-border px-3">
-        <Button aria-label="Back" disabled={!active || active.index === 0} variant="chrome" size="icon" className="size-8" onClick={() => moveHistory(-1)}><ArrowLeft /></Button>
-        <Button aria-label="Forward" disabled={!active || active.index === active.history.length - 1} variant="chrome" size="icon" className="size-8" onClick={() => moveHistory(1)}><ArrowRight /></Button>
-        <Button variant="chrome" size="icon" className="size-8" onClick={() => setKey((value) => value + 1)}><RefreshCw /></Button>
-        <form onSubmit={submit} className="mx-auto flex h-9 w-full max-w-2xl items-center rounded-full border border-border bg-secondary px-4 focus-within:border-muted-foreground">
-          <LockKeyhole className="mr-2 size-3 text-muted-foreground" />
-          <input value={input} onChange={(event) => setInput(event.target.value)} placeholder={displayUrl} className="min-w-0 flex-1 bg-transparent text-center text-xs outline-none placeholder:text-muted-foreground" />
-        </form>
-        <Button variant="chrome" size="icon" className="size-8" onClick={() => setSidebar((value) => !value)}><PanelLeft /></Button>
-        <span aria-label="Gateway proxy active" title="Gateway proxy active" className="flex size-8 items-center justify-center rounded-md text-muted-foreground"><ShieldCheck className="size-4" /></span>
+  return <div className="flex h-full min-h-0 flex-col bg-background">
+    <div className="glass-panel flex h-11 shrink-0 items-end gap-1 border-b border-border px-2 pt-2">
+      <div className="flex min-w-0 flex-1 items-end gap-1 overflow-x-auto">
+        {tabs.map((tab) => <div key={tab.id} className={cn("group flex h-9 min-w-0 max-w-56 flex-1 items-center gap-2 rounded-t-lg border border-b-0 px-3 text-xs transition-colors", tab.id === activeId ? "border-border bg-card text-foreground" : "border-transparent text-muted-foreground hover:bg-accent/60")}>
+          <button onClick={() => { setActiveId(tab.id); setInput(""); }} className="flex min-w-0 flex-1 items-center gap-2 text-left"><Globe2 className="size-3.5 shrink-0" /><span className="truncate">{label(tab)}</span></button>
+          <button aria-label="Close tab" onClick={() => closeTab(tab.id)} className="rounded p-0.5 opacity-0 transition-opacity hover:bg-accent group-hover:opacity-100"><X className="size-3" /></button>
+        </div>)}
+        <Button aria-label="New tab" variant="chrome" size="icon" className="mb-1 size-7 shrink-0" onClick={newTab}><Plus /></Button>
       </div>
-      <div className="min-h-0 flex-1 overflow-hidden">
-        <iframe key={`${key}-${renderedUrl}`} title="Blackhole browser content" src={renderedUrl} className="block h-full w-full border-0 bg-background" sandbox="allow-forms allow-popups allow-scripts allow-same-origin" referrerPolicy="no-referrer" />
-      </div>
+    </div>
+    <div className="glass-panel flex h-14 shrink-0 items-center gap-1 border-b border-border px-3">
+      <Button aria-label="Back" disabled={!active || active.index === 0} variant="chrome" size="icon" className="size-8" onClick={() => moveHistory(-1)}><ArrowLeft /></Button>
+      <Button aria-label="Forward" disabled={!active || active.index === active.history.length - 1} variant="chrome" size="icon" className="size-8" onClick={() => moveHistory(1)}><ArrowRight /></Button>
+      <Button aria-label="Reload" variant="chrome" size="icon" className="size-8" onClick={() => setKey((value) => value + 1)}><RefreshCw /></Button>
+      <form onSubmit={submit} className="ml-2 flex h-9 min-w-0 flex-1 items-center rounded-full border border-border bg-secondary px-4 focus-within:border-muted-foreground">
+        <LockKeyhole className="mr-2 size-3 shrink-0 text-muted-foreground" />
+        <input value={input} onChange={(event) => setInput(event.target.value)} placeholder={url ?? "Search or enter address"} className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground" />
+      </form>
+      <span aria-label="Gateway proxy active" title="Gateway proxy active" className="ml-1 flex size-8 items-center justify-center rounded-md text-muted-foreground"><ShieldCheck className="size-4" /></span>
+      <Button aria-label="Browser menu" variant="chrome" size="icon" className="size-8"><MoreHorizontal /></Button>
+    </div>
+    <div className="min-h-0 flex-1 overflow-hidden">
+      {url ? <iframe key={`${key}-${renderedUrl}`} title="Blackhole browser content" src={renderedUrl} className="block h-full w-full border-0 bg-background" sandbox="allow-forms allow-popups allow-scripts allow-same-origin" referrerPolicy="no-referrer" /> : <NewTab onNavigate={navigate} desktop={Boolean(desktop)} />}
+    </div>
+  </div>;
+}
+
+function NewTab({ onNavigate, desktop }: { onNavigate: (value: string) => void; desktop: boolean }) {
+  const [query, setQuery] = useState("");
+  return <div className="flex h-full flex-col items-center justify-center overflow-y-auto px-6 py-10">
+    <div className="mb-7 flex size-16 items-center justify-center rounded-2xl border border-border bg-card shadow-2xl"><div className="size-5 rounded-full border-2 border-foreground shadow-[inset_0_0_0_4px_var(--background)]" /></div>
+    <h1 className="mb-2 text-2xl font-medium">Blackhole</h1>
+    <p className="mb-8 text-sm text-muted-foreground">{desktop ? "Pages open in their own Chromium window." : "Pages load through the secure gateway."}</p>
+    <form onSubmit={(event) => { event.preventDefault(); onNavigate(query); }} className="flex h-12 w-full max-w-xl items-center rounded-full border border-border bg-card px-5 shadow-xl focus-within:border-muted-foreground"><Search className="mr-3 size-4 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search or enter address" className="flex-1 bg-transparent text-sm outline-none" /></form>
+    <div className="mt-8 grid grid-cols-4 gap-3">
+      {[{ label: "Wikipedia", mark: "W", url: "https://en.wikipedia.org" }, { label: "DuckDuckGo", mark: "D", url: "https://duckduckgo.com" }, { label: "MDN", mark: "M", url: "https://developer.mozilla.org" }, { label: "Archive", mark: "A", url: "https://archive.org" }].map((site) => <button key={site.label} onClick={() => onNavigate(site.url)} className="group flex w-24 flex-col items-center gap-2 rounded-lg p-3 text-xs text-muted-foreground transition-colors hover:bg-card hover:text-foreground"><span className="flex size-10 items-center justify-center rounded-lg border border-border bg-secondary font-medium text-foreground transition-transform group-hover:scale-105">{site.mark}</span>{site.label}</button>)}
     </div>
   </div>;
 }
