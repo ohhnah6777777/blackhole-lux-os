@@ -54,6 +54,7 @@ function Index() {
           <span>{time.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })}</span>
           <span className="font-medium tabular-nums">{time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
         </button>
+        </div>
       </header>
 
       {controlOpen && <ControlCenter />}
