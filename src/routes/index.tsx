@@ -17,6 +17,9 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+const PROXY_KEY = "blackhole.proxyBaseUrl";
+const PROXY_DEFAULT = "https://b-cdn.net";
+
 function Index() {
   const [activeApp, setActiveApp] = useState<"browser" | "files" | "settings" | null>(null);
   const [minimized, setMinimized] = useState(false);
@@ -25,12 +28,22 @@ function Index() {
   const [appearance, setAppearance] = useState<"dark" | "light">("dark");
   const [wallpaper, setWallpaper] = useState<"graphite" | "void" | "frost">("graphite");
   const [windowRadius, setWindowRadius] = useState(12);
-  const [proxyUrl, setProxyUrl] = useState("https://api.allorigins.win/raw?url=");
+  const [proxyUrl, setProxyUrl] = useState(PROXY_DEFAULT);
 
   useEffect(() => {
     const timer = window.setInterval(() => setTime(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(PROXY_KEY);
+    if (stored) setProxyUrl(stored);
+  }, []);
+
+  const updateProxy = (value: string) => {
+    setProxyUrl(value);
+    window.localStorage.setItem(PROXY_KEY, value);
+  };
 
   const launch = (app: "browser" | "files" | "settings") => {
     setActiveApp(app);
@@ -67,9 +80,9 @@ function Index() {
 
         {activeApp && !minimized && (
           <WindowShell radius={windowRadius} title={activeApp === "browser" ? "Blackhole" : activeApp === "files" ? "Files" : "System Settings"} onClose={() => setActiveApp(null)} onMinimize={() => setMinimized(true)}>
-            {activeApp === "browser" && <Browser proxyUrl={proxyUrl} />}
+            {activeApp === "browser" && <Browser proxyUrl={proxyUrl} setProxyUrl={updateProxy} />}
             {activeApp === "files" && <Files />}
-            {activeApp === "settings" && <SystemSettings appearance={appearance} setAppearance={setAppearance} wallpaper={wallpaper} setWallpaper={setWallpaper} windowRadius={windowRadius} setWindowRadius={setWindowRadius} proxyUrl={proxyUrl} setProxyUrl={setProxyUrl} />}
+            {activeApp === "settings" && <SystemSettings appearance={appearance} setAppearance={setAppearance} wallpaper={wallpaper} setWallpaper={setWallpaper} windowRadius={windowRadius} setWindowRadius={setWindowRadius} proxyUrl={proxyUrl} setProxyUrl={updateProxy} />}
           </WindowShell>
         )}
       </main>
@@ -129,15 +142,24 @@ function useDesktopBridge() {
   return bridge;
 }
 
-function Browser({ proxyUrl }: { proxyUrl: string }) {
+function Browser({ proxyUrl, setProxyUrl }: { proxyUrl: string; setProxyUrl: (value: string) => void }) {
   const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, history: [null], index: 0 }]);
   const [activeId, setActiveId] = useState(1);
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
   const url = active?.history[active.index] ?? null;
   const [input, setInput] = useState("");
   const [key, setKey] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [mirror, setMirror] = useState(proxyUrl);
   const desktop = useDesktopBridge();
-  const renderedUrl = useMemo(() => url ? `${proxyUrl}${encodeURIComponent(url)}` : "", [proxyUrl, url]);
+  useEffect(() => setMirror(proxyUrl), [proxyUrl]);
+  const renderedUrl = useMemo(() => {
+    if (!url) return "";
+    const base = proxyUrl.replace(/\/+$/, "");
+    if (typeof window === "undefined") return "";
+    const encoded = window.btoa(unescape(encodeURIComponent(url)));
+    return `${base}/service/${encoded}`;
+  }, [proxyUrl, url]);
 
   const toTarget = (value: string) => {
     const trimmed = value.trim();
@@ -185,10 +207,20 @@ function Browser({ proxyUrl }: { proxyUrl: string }) {
         <input value={input} onChange={(event) => setInput(event.target.value)} placeholder={url ?? "Search or enter address"} className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground" />
       </form>
       <span aria-label="Gateway proxy active" title="Gateway proxy active" className="ml-1 flex size-8 items-center justify-center rounded-md text-muted-foreground"><ShieldCheck className="size-4" /></span>
+      <Button aria-label="Browser settings" variant="chrome" size="icon" className="size-8" onClick={() => setMenuOpen((value) => !value)}><Settings /></Button>
       <Button aria-label="Browser menu" variant="chrome" size="icon" className="size-8"><MoreHorizontal /></Button>
     </div>
-    <div className="min-h-0 flex-1 overflow-hidden">
-      {url ? <iframe key={`${key}-${renderedUrl}`} title="Blackhole browser content" src={renderedUrl} className="block h-full w-full border-0 bg-background" sandbox="allow-forms allow-popups allow-scripts allow-same-origin" referrerPolicy="no-referrer" /> : <NewTab onNavigate={navigate} desktop={Boolean(desktop)} />}
+    <div className="relative min-h-0 flex-1 overflow-hidden">
+      {menuOpen && <div className="glass-panel animate-window-in absolute right-3 top-3 z-30 w-80 rounded-xl border border-border p-4 shadow-2xl">
+        <label htmlFor="mirror-domain" className="text-xs font-medium">Active Proxy Mirror Domain</label>
+        <p className="mb-3 mt-1 text-[11px] text-muted-foreground">Paste a fresh Lunar v2 mirror link here.</p>
+        <input id="mirror-domain" value={mirror} onChange={(event) => setMirror(event.target.value)} placeholder="https://example.b-cdn.net" className="h-9 w-full rounded-md border border-input bg-secondary px-3 text-xs outline-none focus:border-foreground" />
+        <div className="mt-3 flex justify-end gap-2">
+          <Button variant="chrome" size="sm" onClick={() => { setMirror(proxyUrl); setMenuOpen(false); }}>Cancel</Button>
+          <Button size="sm" onClick={() => { setProxyUrl(mirror.trim().replace(/\/+$/, "")); setKey((value) => value + 1); setMenuOpen(false); }}><Save />Save</Button>
+        </div>
+      </div>}
+      {url ? <iframe key={`${key}-${renderedUrl}`} title="Blackhole browser content" src={renderedUrl} className="block h-full w-full border-0 bg-background" allow="fullscreen; clipboard-read; clipboard-write; geolocation; microphone; camera" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox" referrerPolicy="no-referrer" /> : <NewTab onNavigate={navigate} desktop={Boolean(desktop)} />}
     </div>
   </div>;
 }
